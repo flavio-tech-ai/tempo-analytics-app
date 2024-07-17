@@ -28,15 +28,24 @@ jobs:
         echo "${{ secrets.VPN_CONFIG }}" > vpnconfig.ovpn
         sudo apt-get update
         sudo apt-get install -y openvpn
-        sudo openvpn --config vpnconfig.ovpn --daemon
-        sleep 10  # Give the VPN time to connect
+
+    - name: Disable needrestart
+      run: |
+        echo 'NEEDRESTART_MODE=a' | sudo tee /etc/needrestart/needrestart.conf > /dev/null
+
+    - name: Start VPN
+      run: |
         sudo openvpn --config vpnconfig.ovpn --log /tmp/openvpn.log --daemon
         sleep 10  # Give the VPN time to connect
-        cat /tmp/openvpn.log  # Output the log to check for any errors
+        sudo chmod 644 /tmp/openvpn.log  # Adjust permissions to read the log file
 
     - name: Check VPN connection
       run: |
         curl -s https://ipinfo.io  # Verify the IP address to ensure VPN is connected
+
+    - name: Output OpenVPN log
+      run: |
+        cat /tmp/openvpn.log  # Output the log to check for any errors
 
     - name: Deploy Streamlit app
       run: |
