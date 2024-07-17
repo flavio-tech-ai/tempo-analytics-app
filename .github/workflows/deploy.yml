@@ -23,52 +23,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Install OpenVPN
+    - name: Set up VPN
       run: |
+        echo "${{ secrets.VPN_CONFIG }}" > vpnconfig.ovpn
         sudo apt-get update
         sudo apt-get install -y openvpn
-
-    - name: Debug VPN Configuration
-      run: |
-        echo "$VPN_CONFIG" > vpnconfig.ovpn
-        sudo openvpn --config vpnconfig.ovpn --log openvpn.log --daemon
+        sudo openvpn --config vpnconfig.ovpn --daemon
         sleep 10  # Give the VPN time to connect
-        sudo cat openvpn.log
+        sudo openvpn --config vpnconfig.ovpn --log /tmp/openvpn.log --daemon
+        sleep 10  # Give the VPN time to connect
+        cat /tmp/openvpn.log  # Output the log to check for any errors
 
-    - name: Check VPN Connection (IP address)
+    - name: Check VPN connection
       run: |
-        echo "Checking VPN IP address..."
-        curl ifconfig.me
-
-    - name: Check VPN Connection (Ping internal host)
-      run: |
-        echo "Pinging internal host..."
-        ping -c 4 internal.host.to.ping || true
-
-    - name: Connect to MySQL Database
-      run: |
-        python -c """
-import mysql.connector
-import os
-
-db_connection = mysql.connector.connect(
-    host=os.environ.get('tempo-banking-database.cb4o4ask60aq.us-east-2.rds.amazonaws.com'),
-    user=os.environ.get('admin'),
-    password=os.environ.get('wLx=8mB_B3O.D0znn8N6BP86R_vkGo'),
-    database=os.environ.get('Tempo')
-)
-print('Connected to the database successfully!')
-db_connection.close()
-"""
-      env:
-        MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-        MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-        MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-        VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
+        curl -s https://ipinfo.io  # Verify the IP address to ensure VPN is connected
 
     - name: Deploy Streamlit app
       run: |
         streamlit run app.py
-      env:
-        VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
