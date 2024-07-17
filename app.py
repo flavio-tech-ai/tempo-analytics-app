@@ -11,11 +11,17 @@ def fetch_data_from_mysql(db_connection, query):
 
 def main():
 
+    # db_connection = mysql.connector.connect(
+    #     host=st.secrets["mysql"]["host"],
+    #     user=st.secrets["mysql"]["user"],
+    #     password=st.secrets["mysql"]["password"],
+    #     database=st.secrets["mysql"]["database"]SSSAZ
+    # )
     db_connection = mysql.connector.connect(
-        host=st.secrets["mysql"]["host"],
-        user=st.secrets["mysql"]["user"],
-        password=st.secrets["mysql"]["password"],
-        database=st.secrets["mysql"]["database"]
+        host="tempo-banking-database.cb4o4ask60aq.us-east-2.rds.amazonaws.com",
+        user="admin",
+        password="wLx=8mB_B3O.D0znn8N6BP86R_vkGo",
+        database="Tempo"
     )
 
     query = "SELECT ID, Name FROM Tempo.Clients;"
