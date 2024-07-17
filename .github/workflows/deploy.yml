@@ -16,20 +16,56 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.12'
+        python-version: '3.8'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Set up VPN
+    - name: Install OpenVPN
       run: |
-        echo "$VPN_CONFIG" > vpnconfig.ovpn
         sudo apt-get update
         sudo apt-get install -y openvpn
-        sudo openvpn --config vpnconfig.ovpn --daemon
+
+    - name: Debug VPN Configuration
+      run: |
+        echo "$VPN_CONFIG" > vpnconfig.ovpn
+        sudo openvpn --config vpnconfig.ovpn --log openvpn.log --daemon
         sleep 10  # Give the VPN time to connect
+        sudo cat openvpn.log
+
+    - name: Check VPN Connection (IP address)
+      run: |
+        echo "Checking VPN IP address..."
+        curl ifconfig.me
+
+    - name: Check VPN Connection (Ping internal host)
+      run: |
+        echo "Pinging internal host..."
+        ping -c 4 internal.host.to.ping || true
+
+    - name: Connect to MySQL Database
+      run: |
+        python -c """
+import mysql.connector
+import os
+
+db_connection = mysql.connector.connect(
+    host=os.environ.get('tempo-banking-database.cb4o4ask60aq.us-east-2.rds.amazonaws.com'),
+    user=os.environ.get('admin'),
+    password=os.environ.get('wLx=8mB_B3O.D0znn8N6BP86R_vkGo'),
+    database=os.environ.get('Tempo')
+)
+print('Connected to the database successfully!')
+db_connection.close()
+"""
+      env:
+        MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+        MYSQL_USER: ${{ secrets.MYSQL_USER }}
+        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+        VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
 
     - name: Deploy Streamlit app
       run: |
