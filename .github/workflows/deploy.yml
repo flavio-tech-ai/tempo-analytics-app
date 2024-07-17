@@ -47,6 +47,6 @@ jobs:
       run: |
         cat /tmp/openvpn.log  # Output the log to check for any errors
 
-    - name: Deploy Streamlit app
-      run: |
-        streamlit run app.py
+    # - name: Deploy Streamlit app
+    #   run: |
+    #     streamlit run app.py
