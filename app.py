@@ -18,7 +18,7 @@ def main():
         database=st.secrets["mysql"]["database"]
     )
 
-    query = "SELECT * FROM Tempo.Clients;"
+    query = "SELECT ID, Name FROM Tempo.Clients;"
     
     st.title('Display MySQL View Data')
     
